@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const path = require('path');
-const methodOverride = require('method-override')
+const methodOverride = require('method-override');
 const mongoose = require('mongoose');
 
 const Product = require('./models/product');
@@ -21,16 +21,24 @@ const categories = ['fruit', 'vegetable', 'dairy'];
 // add product
 app.post('/products', async (req, res) => {
 	const newProduct = new Product(req.body);
-  await newProduct.save();
+	await newProduct.save();
 
-  res.redirect('/products')
+	res.redirect('/products');
 });
 
 // show all products
 app.get('/products', async (req, res) => {
-	const products = await Product.find({});
+	const { category } = req.query;
 
-	res.render('products/index', { products });
+	if (category) {
+		const products = await Product.find({ category });
+
+    res.render('products/index', { products, category });
+	} else {
+    const products = await Product.find({});
+
+    res.render('products/index', { products, category: 'All' });
+  }
 });
 
 // show add product page
@@ -56,17 +64,20 @@ app.get('/products/:id/edit', async (req, res) => {
 
 app.put('/products/:id', async (req, res) => {
 	const { id } = req.params;
-  const product = await Product.findByIdAndUpdate(id, req.body, { runValidators: true, new: true });
+	const product = await Product.findByIdAndUpdate(id, req.body, {
+		runValidators: true,
+		new: true,
+	});
 
-  res.redirect(`/products/${product._id}`);
-})
+	res.redirect(`/products/${product._id}`);
+});
 
 app.delete('/products/:id', async (req, res) => {
 	const { id } = req.params;
-  const deletedProduct = await Product.findByIdAndDelete(id);
+	const deletedProduct = await Product.findByIdAndDelete(id);
 
-  res.redirect('/products');
-})
+	res.redirect('/products');
+});
 
 app.listen(3000, () => {
 	console.log('LISTENING ON PORT 3000!');
